@@ -13,4 +13,7 @@ public class User {
 	public String toString() {
 		return timeZone + "|" + name;
 	}
+	public static void main(String[] a) {
+		System.out.print("Helleeeeeeeeo\rWorld!");
+	}
 }

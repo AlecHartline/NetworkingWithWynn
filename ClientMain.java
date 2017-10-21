@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,8 +9,12 @@ import java.net.SocketImpl;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
-public class ClientMain {
+import javax.swing.JOptionPane;
 
+public class ClientMain {
+	static Window w = new Window();
+	static User me;
+	static PrintWriter serverOut;
 	public static void main(String[] args) throws IOException {
 		Socket socket = null;
 		
@@ -20,47 +25,47 @@ public class ClientMain {
 		
 		while(socket == null) {
 			try {
-				socket = new Socket("127.0.0.1", clientPortNumber);
+				socket = new Socket("localhost", clientPortNumber);
 			}catch(Exception e) {System.out.println("Attempting to reconnect");}
 		}
-		
+		//10.186.70.180
 		Socket clientSocket = serverSocket.accept();
 		
-		PrintWriter serverOut = new PrintWriter(clientSocket.getOutputStream(), true);
+		serverOut = new PrintWriter(clientSocket.getOutputStream(), true);
 		
 	    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	    
 	    Scanner textInput = new Scanner(System.in);
 	    
-	    System.out.print("What is your time zone? ");
-	    String timeZone = textInput.nextLine();
+	    String timeZone = JOptionPane.showInputDialog(null, "What is your time zone?");
 	    
-	    System.out.print("What is your name? ");
-	    String name = textInput.nextLine();
+	    String name = JOptionPane.showInputDialog(null, "What is your name?");
 	    
-	    User me = new User(timeZone, name);
+	    me = new User(timeZone, name);
 	    serverOut.println(me);
-	    
 	    
 	    String otherUserInput = in.readLine();
 	    User otherUser = new User(otherUserInput.split("\\|")[0], otherUserInput.split("\\|")[1]);
 	    
-	    Thread serverThread = new Thread(new Runnable() {
+		w.setVisible(true);
+	    
+	    /*Thread serverThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				while(true) {
-					serverOut.println(textInput.nextLine());
-					serverOut.flush();
+					String input = textInput.nextLine();
+					
 				}
 			}
-		});
+		});*/
 	    
 	    Thread clientThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				while(true) {
 					try {
-						System.out.println(otherUser + ": " + in.readLine());
+						String input = in.readLine();
+						appendTextOfScreen(otherUser, input);
 					} catch (IOException e) {
 						System.out.println("Connection was closed by remote host");
 						System.exit(0);
@@ -70,9 +75,15 @@ public class ClientMain {
 			}
 		});
 	    
-		serverThread.start();
+		//serverThread.start();
 		clientThread.start();
-		
 	}
-
+	
+	
+	public static void appendTextOfScreen(User u, String input) {
+		w.chatText.append(u.name + ": " + input + "\n");
+		w.scrollBox.getVerticalScrollBar().setValue(w.scrollBox.getVerticalScrollBar().getMaximum());
+		w.repaint();
+	}
+	
 }
